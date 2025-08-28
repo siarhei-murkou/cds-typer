@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Added (experimental) flag `cds.env.typer.output_d_ts_files` for generating output `*.d.ts` files instead of `*.ts` ones
 ### Changed
 ### Deprecated
 ### Removed
