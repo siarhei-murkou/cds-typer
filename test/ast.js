@@ -296,7 +296,34 @@ function visitClassDeclaration(node) {
  */
 function visitFunctionDeclaration(node) {
     const name = node.name.text
-    const body = visit(node.body)
+    // In .ts files, functions have bodies we can visit directly.
+    let body = visit(node.body)
+    if (!body) {
+        // In .d.ts files, functions are declarations without bodies. We synthesise a
+        // pseudo class-expression-like body from the function's return type so that
+        // downstream checks can operate uniformly across TS and D.TS outputs.
+        /** @type {import('typescript').TypeNode | undefined} */
+        const ret = node.type
+        /** @type {import('typescript').TypeLiteralNode | undefined} */
+        let typeLiteral
+        if (ret && ts.isIntersectionTypeNode(ret)) {
+            typeLiteral = ret.types.find(t => ts.isTypeLiteralNode(t))
+        } else if (ret && ts.isTypeLiteralNode(ret)) {
+            typeLiteral = ret
+        }
+        /** @type {any[]} */
+        let members = []
+        if (typeLiteral) {
+            members = typeLiteral.members.map(m => visit(m))
+            // Mark known static-like properties as static to match class output shape
+            for (const mem of members) {
+                if (mem && ['kind','keys','elements','actions'].includes(mem.name)) {
+                    mem.modifiers = [...(mem.modifiers ?? []), { keyword: 'static', nodeType: kinds.Keyword }]
+                }
+            }
+        }
+        body = [ { name, members, nodeType: kinds.ClassExpression } ]
+    }
     return { name, body, nodeType: kinds.FunctionDeclaration }
 }
 
