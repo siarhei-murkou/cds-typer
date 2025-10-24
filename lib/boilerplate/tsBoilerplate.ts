@@ -1,7 +1,9 @@
 import cds from '@sap/cds'
 import { type } from '@sap/cds'
 
-export type ElementsOf<T> = {[name in keyof Required<T>]: type }
+export type ElementsOf<T> = { 
+    [name in keyof Required<T>]: NonNullable<T[name]> extends Default<unknown> ? (type & { default: { val: unknown } }) : type 
+}
 
 export namespace Association {
     export type to <T> = T;
@@ -50,6 +52,13 @@ export type KeysOf<T> = {
 }
 
 export type Unkey<T> = T extends Key<infer U> ? U : T
+
+const _default = Symbol('default')  // to avoid .default showing up in IDE's auto-completion
+export type Default<T> = T & {[_default]?: true}
+
+export type DefaultsOf<T> = {
+  [K in keyof T as NonNullable<T[K]> extends Default<unknown> ? K : never]-?: Default<{}>
+}
 
 /**
  * Dates and timestamps are strings during runtime, so cds-typer represents them as such.
