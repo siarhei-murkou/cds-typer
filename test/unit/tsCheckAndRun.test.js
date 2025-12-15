@@ -65,7 +65,7 @@ async function runTyperAndTsCheck(model, testTsFile, outputDirectory, outputFile
     await checkTranspilation([testTsFile, ...tsFiles], {
         noEmit: false, // need to have the model.js file so that we can run it later
         outDir: emitDir,
-        skipLibCheck: true,
+        skipLibCheck: false,
         paths: {
             '#cds-models/*': [ join(outputDirectory, `/*/${outputFile}`) ],
             '#cds-models': [ join(outputDirectory, `/${outputFile}`) ]
